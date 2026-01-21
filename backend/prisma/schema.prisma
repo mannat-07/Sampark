@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String      @id @default(cuid())
+  name       String
+  email      String      @unique
+  password   String
+  createdAt  DateTime    @default(now())
+  grievances Grievance[]
+}
+
+enum GrievanceCategory {
+  POTHOLES
+  WASTE
+  WATER
+  ELECTRICITY
+  DRAINAGE
+  OTHER
+}
+
+enum GrievanceStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  IN_PROGRESS
+  RESOLVED
+  REJECTED
+}
+
+model Grievance {
+  id          String                   @id @default(cuid())
+  trackingId  String                   @unique
+  title       String
+  description String
+  category    GrievanceCategory
+  location    String
+  latitude    Float?
+  longitude   Float?
+  images      String[] // Array of Cloudflare image URLs
+  priority    String                   @default("MEDIUM") // LOW, MEDIUM, HIGH
+  userId      String
+  user        User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  statuses    GrievanceStatusHistory[]
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+}
+
+model GrievanceStatusHistory {
+  id          String          @id @default(cuid())
+  grievanceId String
+  grievance   Grievance       @relation(fields: [grievanceId], references: [id], onDelete: Cascade)
+  status      GrievanceStatus
+  comment     String?
+  createdAt   DateTime        @default(now())
+  createdBy   String? // Admin/Department user ID (for future)
+
+  @@index([grievanceId])
+}
