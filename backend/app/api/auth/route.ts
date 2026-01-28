@@ -4,6 +4,19 @@ import { hashPassword, comparePassword, generateToken, verifyTokenSimple } from 
 
 const router = express.Router();
 
+// Cookie configuration for both development and production
+const getCookieConfig = () => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    secure: isProduction, // HTTPS only in production
+    sameSite: isProduction ? 'none' : 'lax', // 'none' for cross-domain in production
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    ...(isProduction ? {} : { domain: "localhost" }) // domain only in development
+  };
+};
+
 // Signup
 router.post("/signup", async (req, res) => {
   try {
@@ -18,13 +31,7 @@ router.post("/signup", async (req, res) => {
 
     // Auto-login after signup by setting cookie
     const token = generateToken(newUser.id);
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("token", token, getCookieConfig());
 
     return res.status(201).json({ user: { id: newUser.id, name: newUser.name, email: newUser.email } });
   } catch (err) {
@@ -45,13 +52,7 @@ router.post("/login", async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
     const token = generateToken(user.id);
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false,       // true in production (https)
-      sameSite: "lax",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    res.cookie("token", token, getCookieConfig());
 
     return res.status(200).json({ user: { id: user.id, name: user.name, email: user.email } });
   } catch (err) {

@@ -7,7 +7,7 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Label } from './ui/label';
 import { toast } from 'sonner';
-import { uploadMultipleImages } from '../lib/cloudflare';
+import { uploadMultipleImages } from '../lib/cloudinary';
 import { getCurrentLocation } from '../lib/geocoding';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';

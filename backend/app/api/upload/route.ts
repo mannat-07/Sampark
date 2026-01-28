@@ -1,18 +1,34 @@
 import express from 'express';
-import FormData from 'form-data';
+import { v2 as cloudinary } from 'cloudinary';
+import { Readable } from 'stream';
 
 const router = express.Router();
 
-const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
-const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-// Upload single image to Cloudflare
+// Helper function to convert buffer to stream
+const bufferToStream = (buffer: Buffer) => {
+  const readable = new Readable();
+  readable._read = () => {};
+  readable.push(buffer);
+  readable.push(null);
+  return readable;
+};
+
+// Upload single image to Cloudinary
 router.post("/image", async (req, res) => {
   try {
-    if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
+    // Check Cloudinary configuration
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error("❌ Cloudinary credentials missing");
       return res.status(500).json({ 
         success: false, 
-        error: "Cloudflare credentials not configured" 
+        error: "Cloudinary not configured. Please add credentials to .env file" 
       });
     }
 
@@ -25,12 +41,14 @@ router.post("/image", async (req, res) => {
     }
 
     const file = req.files.file;
+    console.log(`📤 Uploading image: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
 
-    // Validate file type
-    if (!file.mimetype.startsWith('image/')) {
+    // Validate file type (support common image formats)
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.mimetype)) {
       return res.status(400).json({ 
         success: false, 
-        error: "File must be an image" 
+        error: "Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed" 
       });
     }
 
@@ -39,39 +57,37 @@ router.post("/image", async (req, res) => {
     if (file.size > maxSize) {
       return res.status(400).json({ 
         success: false, 
-        error: "Image size must be less than 10MB" 
+        error: `Image size (${(file.size / 1024 / 1024).toFixed(2)} MB) exceeds 10MB limit` 
       });
     }
 
-    // Upload to Cloudflare using fetch with FormData
-    const formData = new FormData();
-    formData.append('file', file.data, file.name);
+    // Upload to Cloudinary
+    const uploadResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'sampark-grievances',
+          resource_type: 'image',
+          transformation: [
+            { quality: 'auto', fetch_format: 'auto' } // Optimize images
+          ]
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
 
-    const uploadUrl = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/images/v1`;
-    
-    const response = await fetch(uploadUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-        ...formData.getHeaders(),
-      },
-      body: formData,
+      bufferToStream(file.data).pipe(uploadStream);
     });
 
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      return res.status(response.status).json({
-        success: false,
-        error: data.errors?.[0]?.message || "Failed to upload image to Cloudflare",
-      });
-    }
+    console.log(`✅ Image uploaded successfully to Cloudinary`);
 
     // Return the uploaded image URL
     return res.json({
       success: true,
-      url: data.result.variants[0], // First variant URL
-      imageId: data.result.id,
+      url: uploadResult.secure_url,
+      imageId: uploadResult.public_id,
+      filename: file.name,
     });
 
   } catch (error) {
@@ -88,13 +104,13 @@ router.post("/images", async (req, res) => {
   try {
     console.log("📤 Upload request received");
     console.log("Files:", req.files);
-    console.log("Cloudflare configured:", !!CLOUDFLARE_ACCOUNT_ID && !!CLOUDFLARE_API_TOKEN);
     
-    if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
-      console.error("❌ Cloudflare credentials not configured");
+    // Check Cloudinary configuration
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error("❌ Cloudinary credentials not configured");
       return res.status(500).json({ 
         success: false, 
-        error: "Cloudflare credentials not configured. Please add CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN to backend .env file" 
+        error: "Cloudinary not configured. Please add credentials to .env file" 
       });
     }
 
@@ -109,50 +125,56 @@ router.post("/images", async (req, res) => {
     const files = Array.isArray(req.files.files) ? req.files.files : [req.files.files];
     console.log(`📁 Processing ${files.length} file(s)`);
     
+    // Limit number of files (max 5 images per upload)
+    if (files.length > 5) {
+      return res.status(400).json({
+        success: false,
+        error: "Maximum 5 images can be uploaded at once"
+      });
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    
     const uploadPromises = files.map(async (file) => {
       try {
         // Validate each file
-        if (!file.mimetype.startsWith('image/')) {
-          console.warn(`⚠️ ${file.name}: Not an image`);
-          return { success: false, error: `${file.name}: Not an image` };
+        if (!allowedTypes.includes(file.mimetype)) {
+          console.warn(`⚠️ ${file.name}: Invalid type (${file.mimetype})`);
+          return { success: false, error: `${file.name}: Invalid file type` };
         }
 
         if (file.size > 10 * 1024 * 1024) {
-          console.warn(`⚠️ ${file.name}: File too large (${file.size} bytes)`);
-          return { success: false, error: `${file.name}: File too large` };
+          console.warn(`⚠️ ${file.name}: File too large (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+          return { success: false, error: `${file.name}: Exceeds 10MB limit` };
         }
 
-        const formData = new FormData();
-        formData.append('file', file.data, file.name);
-
-        const uploadUrl = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/images/v1`;
+        console.log(`📤 Uploading ${file.name} to Cloudinary...`);
         
-        console.log(`⬆️ Uploading ${file.name} to Cloudflare...`);
-        const response = await fetch(uploadUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-            ...formData.getHeaders(),
-          },
-          body: formData,
+        // Upload to Cloudinary
+        const uploadResult = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              folder: 'sampark-grievances',
+              resource_type: 'image',
+              transformation: [
+                { quality: 'auto', fetch_format: 'auto' }
+              ]
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+
+          bufferToStream(file.data).pipe(uploadStream);
         });
-
-        const data = await response.json();
-        console.log(`📥 Cloudflare response for ${file.name}:`, data);
-
-        if (!response.ok || !data.success) {
-          console.error(`❌ Upload failed for ${file.name}:`, data.errors);
-          return {
-            success: false,
-            error: data.errors?.[0]?.message || "Upload failed",
-          };
-        }
 
         console.log(`✅ ${file.name} uploaded successfully`);
         return {
           success: true,
-          url: data.result.variants[0],
-          imageId: data.result.id,
+          url: uploadResult.secure_url,
+          imageId: uploadResult.public_id,
+          filename: file.name,
         };
       } catch (error) {
         console.error(`❌ Error uploading ${file.name}:`, error);

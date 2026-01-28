@@ -1,6 +1,3 @@
-// Cloudflare Images Upload Configuration (via Backend API)
-// Production-ready implementation with backend proxy
-
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export interface UploadResult {
@@ -11,21 +8,29 @@ export interface UploadResult {
 }
 
 /**
- * Upload an image to Cloudflare via backend API
+ * Upload an image to Cloudinary via backend API
  * @param file - The image file to upload
  * @returns Upload result with URL or error
  */
-export async function uploadToCloudflare(file: File): Promise<UploadResult> {
+export async function uploadToCloudinary(file: File): Promise<UploadResult> {
   try {
-    // Validate file
-    if (!file.type.startsWith('image/')) {
-      return { success: false, error: 'File must be an image' };
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      return { 
+        success: false, 
+        error: `Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed` 
+      };
     }
 
     // Check file size (max 10MB)
     const maxSize = 10 * 1024 * 1024; // 10MB in bytes
     if (file.size > maxSize) {
-      return { success: false, error: 'Image size must be less than 10MB' };
+      const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+      return { 
+        success: false, 
+        error: `Image size (${sizeMB} MB) exceeds 10MB limit` 
+      };
     }
 
     // Create form data
@@ -64,19 +69,27 @@ export async function uploadToCloudflare(file: File): Promise<UploadResult> {
 }
 
 /**
- * Upload multiple images to Cloudflare via backend API
+ * Upload multiple images to Cloudinary via backend API
  * @param files - Array of image files to upload
  * @returns Array of upload results
  */
 export async function uploadMultipleImages(files: File[]): Promise<UploadResult[]> {
   try {
+    // Limit number of files
+    if (files.length > 5) {
+      return [{ success: false, error: 'Maximum 5 images can be uploaded at once' }];
+    }
+
     // Validate all files first
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    
     for (const file of files) {
-      if (!file.type.startsWith('image/')) {
-        return [{ success: false, error: `${file.name} is not an image` }];
+      if (!allowedTypes.includes(file.type)) {
+        return [{ success: false, error: `${file.name}: Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed` }];
       }
       if (file.size > 10 * 1024 * 1024) {
-        return [{ success: false, error: `${file.name} is larger than 10MB` }];
+        const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+        return [{ success: false, error: `${file.name}: Size (${sizeMB} MB) exceeds 10MB limit` }];
       }
     }
 
@@ -107,10 +120,10 @@ export async function uploadMultipleImages(files: File[]): Promise<UploadResult[
 }
 
 /**
- * Delete an image from Cloudflare via backend API
- * @param imageId - The Cloudflare image ID
+ * Delete an image from Cloudinary via backend API
+ * @param imageId - The Cloudinary image ID (public_id)
  */
-export async function deleteFromCloudflare(imageId: string): Promise<boolean> {
+export async function deleteFromCloudinary(imageId: string): Promise<boolean> {
   try {
     const response = await fetch(`${API_URL}/api/upload/image/${imageId}`, {
       method: 'DELETE',
