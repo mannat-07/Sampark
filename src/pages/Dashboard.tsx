@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Navbar from "@/components/Navbar";
@@ -9,6 +9,7 @@ import Chatbot from "@/components/Chatbot";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const myGrievancesRef = useRef<{ refresh: () => void }>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -36,15 +37,22 @@ const Dashboard: React.FC = () => {
     }
   }, [navigate]);
 
+  const handleGrievanceSubmitted = () => {
+    // Refresh the grievances list when a new grievance is submitted
+    if (myGrievancesRef.current) {
+      myGrievancesRef.current.refresh();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <GrievanceSection />
+      <GrievanceSection onGrievanceSubmitted={handleGrievanceSubmitted} />
       
       {/* My Grievances Section */}
       <section className="py-24 bg-secondary/20">
         <div className="section-container">
-          <MyGrievances />
+          <MyGrievances ref={myGrievancesRef} />
         </div>
       </section>
       

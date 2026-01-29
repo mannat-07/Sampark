@@ -62,7 +62,7 @@ router.post("/image", async (req, res) => {
     }
 
     // Upload to Cloudinary
-    const uploadResult = await new Promise((resolve, reject) => {
+    const uploadResult = await new Promise<{secure_url: string; public_id: string}>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: 'sampark-grievances',
@@ -73,7 +73,7 @@ router.post("/image", async (req, res) => {
         },
         (error, result) => {
           if (error) reject(error);
-          else resolve(result);
+          else resolve(result as {secure_url: string; public_id: string});
         }
       );
 
@@ -135,7 +135,7 @@ router.post("/images", async (req, res) => {
 
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     
-    const uploadPromises = files.map(async (file) => {
+    const uploadPromises = files.map(async (file: {name: string; data: Buffer; size: number; mimetype: string}) => {
       try {
         // Validate each file
         if (!allowedTypes.includes(file.mimetype)) {
@@ -151,7 +151,7 @@ router.post("/images", async (req, res) => {
         console.log(`📤 Uploading ${file.name} to Cloudinary...`);
         
         // Upload to Cloudinary
-        const uploadResult = await new Promise((resolve, reject) => {
+        const uploadResult = await new Promise<{secure_url: string; public_id: string}>((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
             {
               folder: 'sampark-grievances',
@@ -162,7 +162,7 @@ router.post("/images", async (req, res) => {
             },
             (error, result) => {
               if (error) reject(error);
-              else resolve(result);
+              else resolve(result as {secure_url: string; public_id: string});
             }
           );
 
@@ -194,7 +194,7 @@ router.post("/images", async (req, res) => {
     console.error("❌ Multiple upload error:", error);
     return res.status(500).json({
       success: false,
-      error: "Failed to upload images: " + error.message,
+      error: "Failed to upload images: " + (error instanceof Error ? error.message : 'Unknown error'),
     });
   }
 });

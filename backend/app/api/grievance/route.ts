@@ -1,6 +1,14 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { verifyToken } from '../../../lib/auth.js';
+import {
+  saveFormData,
+  getFormData,
+  clearFormData,
+  cacheUserGrievances,
+  getCachedUserGrievances,
+  invalidateUserGrievancesCache
+} from '../../../lib/redis.js';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -17,6 +25,11 @@ function generateTrackingId() {
 router.post("/submit", verifyToken, async (req, res) => {
   try {
     const { title, description, category, location, latitude, longitude, images, priority } = req.body;
+    
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
     const userId = req.user.id;
 
     // Validate required fields
@@ -67,6 +80,12 @@ router.post("/submit", verifyToken, async (req, res) => {
       }
     });
 
+    // Clear form cache after successful submission
+    await clearFormData(userId);
+    
+    // Invalidate grievances cache so it fetches fresh data
+    await invalidateUserGrievancesCache(userId);
+
     res.status(201).json({
       success: true,
       trackingId: grievance.trackingId,
@@ -115,8 +134,24 @@ router.get("/track/:trackingId", async (req, res) => {
 // Get all grievances for logged-in user
 router.get("/my-grievances", verifyToken, async (req, res) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
     const userId = req.user.id;
 
+    // Try to get from cache first
+    const cachedGrievances = await getCachedUserGrievances(userId);
+    
+    if (cachedGrievances) {
+      return res.json({
+        success: true,
+        grievances: cachedGrievances,
+        cached: true
+      });
+    }
+
+    // If not in cache, fetch from database
     const grievances = await prisma.grievance.findMany({
       where: { userId },
       include: {
@@ -128,9 +163,13 @@ router.get("/my-grievances", verifyToken, async (req, res) => {
       orderBy: { createdAt: "desc" }
     });
 
+    // Cache the result for 12 hours
+    await cacheUserGrievances(userId, grievances);
+
     res.json({
       success: true,
-      grievances
+      grievances,
+      cached: false
     });
   } catch (error) {
     console.error("Error fetching grievances:", error);
@@ -142,6 +181,11 @@ router.get("/my-grievances", verifyToken, async (req, res) => {
 router.get("/:id", verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
+    
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
     const userId = req.user.id;
 
     const grievance = await prisma.grievance.findFirst({
@@ -176,6 +220,10 @@ router.post("/:id/status", verifyToken, async (req, res) => {
     const { id } = req.params;
     const { status, comment } = req.body;
 
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
     if (!status) {
       return res.status(400).json({ error: "Status is required" });
     }
@@ -208,6 +256,70 @@ router.post("/:id/status", verifyToken, async (req, res) => {
   } catch (error) {
     console.error("Error updating status:", error);
     res.status(500).json({ error: "Failed to update status" });
+  }
+});
+
+// Save form data to cache (auto-save)
+router.post("/form/save", verifyToken, async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    const userId = req.user.id;
+    const formData = req.body;
+
+    await saveFormData(userId, formData);
+
+    res.json({
+      success: true,
+      message: "Form data saved"
+    });
+  } catch (error) {
+    console.error("Error saving form data:", error);
+    res.status(500).json({ error: "Failed to save form data" });
+  }
+});
+
+// Get saved form data from cache
+router.get("/form/restore", verifyToken, async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    const userId = req.user.id;
+
+    const formData = await getFormData(userId);
+
+    res.json({
+      success: true,
+      formData
+    });
+  } catch (error) {
+    console.error("Error restoring form data:", error);
+    res.status(500).json({ error: "Failed to restore form data" });
+  }
+});
+
+// Clear saved form data from cache
+router.delete("/form/clear", verifyToken, async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    const userId = req.user.id;
+
+    await clearFormData(userId);
+
+    res.json({
+      success: true,
+      message: "Form data cleared"
+    });
+  } catch (error) {
+    console.error("Error clearing form data:", error);
+    res.status(500).json({ error: "Failed to clear form data" });
   }
 });
 

@@ -4,7 +4,11 @@ import GrievanceForm from './GrievanceForm';
 import StatusTracker from './StatusTracker';
 import { FileText, Search } from 'lucide-react';
 
-export default function GrievanceSection() {
+interface GrievanceSectionProps {
+  onGrievanceSubmitted?: () => void;
+}
+
+export default function GrievanceSection({ onGrievanceSubmitted }: GrievanceSectionProps) {
   return (
     <section id="grievance" className="py-24 relative overflow-hidden">
       {/* Background decoration */}
@@ -57,7 +61,7 @@ export default function GrievanceSection() {
             </TabsList>
             <TabsContent value="submit" className="mt-0">
               <div className="card-elevated rounded-2xl p-6 sm:p-8">
-                <GrievanceForm />
+                <GrievanceForm onGrievanceSubmitted={onGrievanceSubmitted} />
               </div>
             </TabsContent>
             <TabsContent value="track" className="mt-0">

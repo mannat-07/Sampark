@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Clock, CheckCircle2, Loader2, XCircle, Eye, AlertCircle } from 'lucide-react';
 import { Button } from './ui/button';
@@ -64,7 +64,11 @@ const priorityColors: Record<string, string> = {
   HIGH: 'bg-red-100 text-red-700',
 };
 
-export default function MyGrievances() {
+export interface MyGrievancesHandle {
+  refresh: () => void;
+}
+
+const MyGrievances = forwardRef<MyGrievancesHandle>((props, ref) => {
   const [grievances, setGrievances] = useState<Grievance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,9 +78,14 @@ export default function MyGrievances() {
     fetchGrievances();
   }, []);
 
-  const fetchGrievances = async () => {
+  const fetchGrievances = async (forceFresh = false) => {
     try {
-      const response = await fetch(`${API_URL}/api/grievance/my-grievances`, {
+      setLoading(true);
+      const url = forceFresh 
+        ? `${API_URL}/api/grievance/my-grievances?fresh=true`
+        : `${API_URL}/api/grievance/my-grievances`;
+      
+      const response = await fetch(url, {
         credentials: 'include',
       });
 
@@ -84,6 +93,7 @@ export default function MyGrievances() {
 
       if (response.ok && data.success) {
         setGrievances(data.grievances);
+        setError(null);
       } else {
         setError(data.error || 'Failed to fetch grievances');
       }
@@ -94,6 +104,13 @@ export default function MyGrievances() {
       setLoading(false);
     }
   };
+
+  // Expose refresh method to parent components
+  useImperativeHandle(ref, () => ({
+    refresh: () => {
+      fetchGrievances(true);
+    }
+  }));
 
   if (loading) {
     return (
@@ -324,4 +341,8 @@ export default function MyGrievances() {
       )}
     </div>
   );
-}
+});
+
+MyGrievances.displayName = 'MyGrievances';
+
+export default MyGrievances;

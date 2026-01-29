@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Send, CheckCircle, Upload, MapPin, X, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
@@ -12,7 +12,11 @@ import { getCurrentLocation } from '../lib/geocoding';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-export default function GrievanceForm() {
+interface GrievanceFormProps {
+  onGrievanceSubmitted?: () => void;
+}
+
+export default function GrievanceForm({ onGrievanceSubmitted }: GrievanceFormProps = {}) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [trackingId, setTrackingId] = useState<string | null>(null);
@@ -26,6 +30,90 @@ export default function GrievanceForm() {
     longitude: '',
     priority: 'MEDIUM',
   });
+
+  // Auto-save timer ref
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isRestoringRef = useRef(false);
+
+  // Restore form data on mount
+  useEffect(() => {
+    const restoreFormData = async () => {
+      try {
+        isRestoringRef.current = true;
+        const response = await fetch(`${API_URL}/api/grievance/form/restore`, {
+          credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.formData) {
+          setFormData(data.formData.form || {
+            title: '',
+            description: '',
+            category: '',
+            location: '',
+            latitude: '',
+            longitude: '',
+            priority: 'MEDIUM',
+          });
+          setUploadedImages(data.formData.images || []);
+          toast.success('✨ Draft restored!', {
+            description: 'Your previous form data has been recovered.',
+          });
+        }
+      } catch (error) {
+        console.log('No saved form data found');
+      } finally {
+        isRestoringRef.current = false;
+      }
+    };
+
+    restoreFormData();
+
+  }, []);
+
+  // Auto-save form data every 3 seconds
+  useEffect(() => {
+    // Don't auto-save if we're currently restoring data
+    if (isRestoringRef.current) return;
+
+    // Clear existing timer
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    // Only auto-save if there's some data to save
+    const hasData = formData.title || formData.description || formData.category || formData.location;
+    
+    if (!hasData) return;
+
+    // Set new timer for auto-save
+    autoSaveTimerRef.current = setTimeout(async () => {
+      try {
+        await fetch(`${API_URL}/api/grievance/form/save`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            form: formData,
+            images: uploadedImages,
+          }),
+        });
+        console.log('✅ Form auto-saved');
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+      }
+    }, 3000); // Auto-save after 3 seconds of no changes
+
+    // Cleanup on unmount
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [formData, uploadedImages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +142,22 @@ export default function GrievanceForm() {
 
       if (response.ok && data.success) {
         setTrackingId(data.trackingId);
+        
+        // Clear the auto-saved form data from cache
+        try {
+          await fetch(`${API_URL}/api/grievance/form/clear`, {
+            method: 'DELETE',
+            credentials: 'include',
+          });
+        } catch (error) {
+          console.error('Failed to clear form cache:', error);
+        }
+        
+        // Notify parent component to refresh grievances list
+        if (onGrievanceSubmitted) {
+          onGrievanceSubmitted();
+        }
+        
         toast.success('Grievance submitted successfully!');
       } else {
         if (response.status === 401) {
