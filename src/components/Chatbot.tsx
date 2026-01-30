@@ -102,7 +102,7 @@ export default function Chatbot() {
             className="fixed bottom-6 right-6 z-50 w-[360px] max-w-[calc(100vw-48px)] bg-card rounded-2xl shadow-2xl border border-border overflow-hidden"
           >
             {/* Header */}
-            <div className="hero-gradient p-4 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-primary to-accent dark:from-[#007ea7] dark:to-[#00a8e8] p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                   <Bot className="w-5 h-5 text-white" />

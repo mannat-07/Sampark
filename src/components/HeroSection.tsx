@@ -22,7 +22,7 @@ function LoadingFallback() {
 
 export default function HeroSection() {
   return (
-    <section id="home" className="relative min-h-screen pt-24 pb-16 overflow-hidden">
+    <section id="home" className="relative min-h-screen pt-24 pb-16 overflow-hidden bg-gradient-to-br from-white via-blue-50/30 to-cyan-50/30 dark:from-[#00171f] dark:via-[#003459] dark:to-[#00171f]">
       {/* Background gradient */}
       <div className="absolute inset-0 hero-gradient-radial opacity-30" />
       
@@ -39,10 +39,10 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#007ea7]/10 border border-[#007ea7]/20 mb-6"
             >
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-sm font-medium text-primary">
+              <span className="w-2 h-2 rounded-full bg-[#00a8e8] animate-pulse" />
+              <span className="text-sm font-medium text-[#00a8e8]">
                 Empowering Citizens Through Technology
               </span>
             </motion.div>
@@ -51,10 +51,10 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6"
+              className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight mb-6"
             >
               Your Voice{' '}
-              <span className="text-gradient">Matters</span>
+              <span className="bg-gradient-to-r from-[#007ea7] to-[#00a8e8] bg-clip-text text-transparent">Matters</span>
               <br />
               To Your City
             </motion.h1>
@@ -63,7 +63,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0"
+              className="text-lg text-gray-700 dark:text-gray-300 mb-8 max-w-xl"
             >
               Sampark bridges the gap between citizens and urban local bodies, 
               ensuring transparency, traceability, and accountability in 
@@ -100,12 +100,12 @@ export default function HeroSection() {
               {stats.map((stat, index) => (
                 <div key={index} className="text-center lg:text-left">
                   <div className="flex items-center justify-center lg:justify-start gap-2 mb-1">
-                    <stat.icon className="w-4 h-4 text-primary" />
-                    <span className="font-display text-2xl font-bold text-foreground">
+                    <stat.icon className="w-4 h-4 text-[#007ea7] dark:text-[#00a8e8]" />
+                    <span className="font-display text-2xl font-bold text-gray-900 dark:text-white">
                       {stat.value}
                     </span>
                   </div>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
                     {stat.label}
                   </span>
                 </div>
@@ -134,7 +134,7 @@ export default function HeroSection() {
         >
           <a
             href="#problem"
-            className="flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+            className="flex flex-col items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#007ea7] dark:hover:text-[#00a8e8] transition-colors"
           >
             <span className="text-xs font-medium">Scroll to explore</span>
             <ArrowDown className="w-5 h-5 animate-bounce" />

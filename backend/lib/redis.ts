@@ -3,6 +3,11 @@ import { Redis } from '@upstash/redis';
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL || '',
   token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
+  // Add retry configuration for better error handling
+  retry: {
+    retries: 2,
+    backoff: (retryCount) => Math.exp(retryCount) * 50,
+  },
 });
 
 // Helper function to check if Redis is configured

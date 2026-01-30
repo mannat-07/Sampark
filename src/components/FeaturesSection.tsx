@@ -42,8 +42,8 @@ function FeatureCard({ feature, index }: { feature: typeof features[0]; index: n
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1 }}
-      className="card-elevated rounded-2xl overflow-hidden cursor-pointer group"
       onClick={() => setIsExpanded(!isExpanded)}
+      className="bg-white dark:bg-[#003459]/40 backdrop-blur-xl rounded-2xl overflow-hidden cursor-pointer border border-gray-200 dark:border-[#007ea7]/20 hover:border-[#007ea7] dark:hover:border-[#007ea7]/50 transition-all shadow-lg group"
     >
       <div className="p-6">
         <div className="flex items-start gap-4">
@@ -92,7 +92,7 @@ function FeatureCard({ feature, index }: { feature: typeof features[0]; index: n
 
 export default function FeaturesSection() {
   return (
-    <section id="features" className="py-24 bg-secondary/30">
+    <section id="features" className="py-24 bg-white dark:bg-[#00171f]/30">
       <div className="section-container">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -100,7 +100,7 @@ export default function FeaturesSection() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 dark:bg-[#007ea7]/10 text-primary dark:text-[#00a8e8] text-sm font-medium mb-4">
             Features
           </span>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">

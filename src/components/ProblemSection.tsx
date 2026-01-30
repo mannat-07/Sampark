@@ -26,7 +26,7 @@ const problems = [
 
 export default function ProblemSection() {
   return (
-    <section id="problem" className="py-24 bg-secondary/30">
+    <section id="problem" className="py-24 bg-gray-50/50 dark:bg-[#00171f]/50">
       <div className="section-container">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -34,7 +34,7 @@ export default function ProblemSection() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-destructive/10 text-destructive text-sm font-medium mb-4">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-destructive/10 dark:bg-red-500/10 text-destructive dark:text-red-400 text-sm font-medium mb-4">
             The Challenge
           </span>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">
@@ -56,9 +56,9 @@ export default function ProblemSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="card-elevated rounded-2xl p-6 group cursor-default"
+              className="bg-white dark:bg-[#003459]/40 backdrop-blur-xl rounded-2xl p-6 border border-gray-200 dark:border-[#007ea7]/20 hover:border-[#007ea7] dark:hover:border-[#007ea7]/50 transition-all shadow-lg group cursor-default"
             >
-              <div className="w-14 h-14 rounded-xl bg-destructive/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+              <div className="w-14 h-14 rounded-xl bg-destructive/10 dark:bg-red-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                 <problem.icon className="w-7 h-7 text-destructive" />
               </div>
               <h3 className="font-display text-lg font-semibold text-foreground mb-2">

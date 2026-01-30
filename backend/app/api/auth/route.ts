@@ -10,7 +10,7 @@ const getCookieConfig = () => {
   return {
     httpOnly: true,
     secure: isProduction, // HTTPS only in production
-    sameSite: isProduction ? 'none' : 'lax', // 'none' for cross-domain in production
+    sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
     path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     ...(isProduction ? {} : { domain: "localhost" }) // domain only in development
@@ -33,9 +33,10 @@ router.post("/signup", async (req, res) => {
     const token = generateToken(newUser.id);
     res.cookie("token", token, getCookieConfig());
 
-    return res.status(201).json({ user: { id: newUser.id, name: newUser.name, email: newUser.email } });
+    return res.status(201).json({ user: { id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role } });
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    const error = err as Error;
+    return res.status(500).json({ message: error.message });
   }
 });
 
@@ -45,7 +46,15 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ message: "All fields required" });
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    // Find user with case-insensitive email
+    const user = await prisma.user.findFirst({ 
+      where: { 
+        email: {
+          equals: email,
+          mode: 'insensitive'
+        }
+      } 
+    });
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
     const isMatch = await comparePassword(password, user.password);
@@ -54,9 +63,10 @@ router.post("/login", async (req, res) => {
     const token = generateToken(user.id);
     res.cookie("token", token, getCookieConfig());
 
-    return res.status(200).json({ user: { id: user.id, name: user.name, email: user.email } });
+    return res.status(200).json({ user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    const error = err as Error;
+    return res.status(500).json({ message: error.message });
   }
 });
 
@@ -72,12 +82,12 @@ router.get("/me", async (req, res) => {
   if (!token) return res.status(401).json({ message: "Unauthorized" });
 
   try {
-    const decoded = verifyTokenSimple(token);
+    const decoded = verifyTokenSimple(token) as { userId: string };
     
     // Fetch user data from database
     const user = await prisma.user.findUnique({ 
       where: { id: decoded.userId },
-      select: { id: true, name: true, email: true }
+      select: { id: true, name: true, email: true, role: true }
     });
     
     if (!user) {

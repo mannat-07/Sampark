@@ -1,6 +1,7 @@
 import express from 'express';
 import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
+import { UploadedFile } from 'express-fileupload';
 
 const router = express.Router();
 
@@ -40,7 +41,7 @@ router.post("/image", async (req, res) => {
       });
     }
 
-    const file = req.files.file;
+    const file = Array.isArray(req.files.file) ? req.files.file[0] : req.files.file as UploadedFile;
     console.log(`📤 Uploading image: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
 
     // Validate file type (support common image formats)
@@ -135,7 +136,7 @@ router.post("/images", async (req, res) => {
 
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     
-    const uploadPromises = files.map(async (file: {name: string; data: Buffer; size: number; mimetype: string}) => {
+    const uploadPromises = files.map(async (file: UploadedFile) => {
       try {
         // Validate each file
         if (!allowedTypes.includes(file.mimetype)) {

@@ -22,6 +22,15 @@ const Dashboard: React.FC = () => {
 
         if (!res.ok) {
           navigate("/login");
+          return;
+        }
+
+        const data = await res.json();
+        // If user is admin, redirect to admin dashboard
+        if (data.user && data.user.role === 'ADMIN') {
+          console.log('Admin user detected, redirecting to admin dashboard');
+          navigate("/admin/dashboard");
+          return;
         }
       } catch (error) {
         navigate("/login");

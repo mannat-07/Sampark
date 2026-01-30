@@ -333,7 +333,7 @@ export default function GrievanceForm({ onGrievanceSubmitted }: GrievanceFormPro
             onValueChange={(value) => handleInputChange('priority', value)}
           >
             <SelectTrigger className="h-12">
-              <SelectValue />
+              <SelectValue placeholder="Select priority" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="LOW">🟢 Low</SelectItem>

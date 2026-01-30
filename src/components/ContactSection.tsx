@@ -30,7 +30,7 @@ const contactInfo = [
 
 export default function ContactSection() {
   return (
-    <section id="contact" className="py-24 bg-secondary/30">
+    <section id="contact" className="py-24 bg-white dark:bg-[#00171f]/50">
       <div className="section-container">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -38,7 +38,7 @@ export default function ContactSection() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 dark:bg-[#007ea7]/10 text-primary dark:text-[#00a8e8] text-sm font-medium mb-4">
             Get in Touch
           </span>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">
@@ -63,7 +63,7 @@ export default function ContactSection() {
               {item.link ? (
                 <a
                   href={item.link}
-                  className="block card-elevated rounded-2xl p-6 text-center group"
+                  className="block bg-gray-50 dark:bg-[#003459]/40 backdrop-blur-xl rounded-2xl p-6 text-center border border-gray-200 dark:border-[#007ea7]/20 hover:border-[#007ea7] dark:hover:border-[#007ea7]/50 transition-all shadow-lg group"
                 >
                   <div className="w-14 h-14 rounded-xl hero-gradient mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <item.icon className="w-7 h-7 text-white" />
@@ -79,7 +79,7 @@ export default function ContactSection() {
                   </p>
                 </a>
               ) : (
-                <div className="card-elevated rounded-2xl p-6 text-center">
+                <div className="bg-gray-50 dark:bg-[#003459]/40 backdrop-blur-xl rounded-2xl p-6 text-center border border-gray-200 dark:border-[#007ea7]/20 shadow-lg">
                   <div className="w-14 h-14 rounded-xl hero-gradient mx-auto mb-4 flex items-center justify-center">
                     <item.icon className="w-7 h-7 text-white" />
                   </div>
