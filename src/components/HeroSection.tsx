@@ -1,6 +1,7 @@
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowDown, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import CityScene from './CityScene';
 import HeroBackground from './HeroBackground';
 
@@ -16,6 +17,32 @@ function LoadingFallback() {
 }
 
 export default function HeroSection() {
+  const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/auth/me`, {
+          credentials: 'include',
+        });
+        setIsLoggedIn(res.ok);
+      } catch {
+        setIsLoggedIn(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const handleSubmitGrievance = () => {
+    if (isLoggedIn) {
+      navigate('/dashboard');
+    } else {
+      navigate('/login');
+    }
+  };
+
   return (
     <section id="home" className="relative min-h-screen pt-24 pb-16 overflow-hidden">
       {/* Crazy Three.js Background */}
@@ -61,14 +88,14 @@ export default function HeroSection() {
               transition={{ delay: 0.4 }}
               className="flex flex-col sm:flex-row gap-5 justify-center lg:justify-start"
             >
-              <motion.a
-                href="#grievance"
+              <motion.button
+                onClick={handleSubmitGrievance}
                 className="group relative inline-flex items-center justify-center gap-2 px-10 py-5 rounded-full bg-gradient-to-r from-[#007ea7] via-[#00a8e8] to-[#00c4ff] text-white font-bold shadow-lg transition-all duration-300"
                 whileHover={{ scale: 1.02, boxShadow: '0 20px 40px -15px rgba(0,168,232,0.5)' }}
                 whileTap={{ scale: 0.98 }}
               >
                 <span className="relative z-10">Submit a Grievance</span>
-              </motion.a>
+              </motion.button>
               <motion.a
                 href="#features"
                 className="inline-flex items-center justify-center gap-2 px-10 py-5 rounded-full border-2 border-[#007ea7]/40 dark:border-[#00a8e8]/40 text-gray-900 dark:text-white font-bold hover:bg-[#007ea7]/10 dark:hover:bg-[#00a8e8]/10 hover:border-[#00a8e8] transition-all duration-300"

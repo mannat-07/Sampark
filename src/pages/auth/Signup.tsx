@@ -1,7 +1,7 @@
 import { useState, ChangeEvent, FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, Sparkles } from 'lucide-react';
+import { User, Mail, Lock, Sparkles, ArrowLeft } from 'lucide-react';
 
 interface SignupForm {
   name: string;
@@ -90,6 +90,13 @@ const Signup: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md bg-white/95 dark:bg-[#00171f]/95 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-[#007ea7]/20 relative z-10"
       >
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-[#007ea7] dark:hover:text-[#00a8e8] transition-colors mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Home
+        </Link>
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
