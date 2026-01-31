@@ -102,6 +102,38 @@ export default {
             transform: "scale(1.02)"
           },
         },
+        "float-orb": {
+          "0%, 100%": { 
+            transform: "translate(0, 0) scale(1)",
+          },
+          "33%": { 
+            transform: "translate(30px, -30px) scale(1.1)",
+          },
+          "66%": { 
+            transform: "translate(-20px, 20px) scale(0.9)",
+          },
+        },
+        "float-delayed": {
+          "0%, 100%": { 
+            transform: "translate(0, 0) scale(1)",
+          },
+          "33%": { 
+            transform: "translate(-30px, 30px) scale(0.9)",
+          },
+          "66%": { 
+            transform: "translate(20px, -20px) scale(1.1)",
+          },
+        },
+        "twinkle": {
+          "0%, 100%": { 
+            opacity: "0.2",
+            transform: "scale(1)"
+          },
+          "50%": { 
+            opacity: "1",
+            transform: "scale(1.5)"
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -112,6 +144,8 @@ export default {
         "slide-in-right": "slide-in-right 0.4s ease-out forwards",
         "float": "float 6s ease-in-out infinite",
         "pulse-glow": "pulse-glow 3s ease-in-out infinite",
+        "float-delayed": "float-delayed 20s ease-in-out infinite",
+        "twinkle": "twinkle 3s ease-in-out infinite",
       },
       boxShadow: {
         'soft': '0 4px 20px -2px hsl(var(--primary) / 0.1)',

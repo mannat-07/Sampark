@@ -23,10 +23,17 @@ const AdminLayout: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAdmin');
-    localStorage.removeItem('user');
-    navigate('/login');
+  const handleLogout = async () => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    try {
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } finally {
+      // Navigate to landing page after logout
+      navigate('/');
+    }
   };
 
   const menuItems = [

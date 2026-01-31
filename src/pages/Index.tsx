@@ -6,18 +6,22 @@ import FeaturesSection from '@/components/FeaturesSection';
 import ContactSection from '@/components/ContactSection';
 import Footer from '@/components/Footer';
 import Chatbot from '@/components/Chatbot';
+import AnimatedBackground from '@/components/AnimatedBackground';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <HeroSection />
-      <ProblemSection />
-      <SolutionSection />
-      <FeaturesSection />
-      <ContactSection />
-      <Footer />
-      <Chatbot />
+    <div className="min-h-screen">
+      <AnimatedBackground />
+      <div className="relative z-10">
+        <Navbar />
+        <HeroSection />
+        <ProblemSection />
+        <SolutionSection />
+        <FeaturesSection />
+        <ContactSection />
+        <Footer />
+        <Chatbot />
+      </div>
     </div>
   );
 };
