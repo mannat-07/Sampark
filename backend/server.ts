@@ -7,6 +7,7 @@ import authRoutes from './app/api/auth/route.js';
 import grievanceRoutes from './app/api/grievance/route.js';
 import uploadRoutes from './app/api/upload/route.js';
 import adminRoutes from './app/api/admin/route.js';
+import chatbotRoutes from './app/api/chatbot/route.js';
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/grievance", grievanceRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/chatbot", chatbotRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend is running!");

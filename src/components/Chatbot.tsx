@@ -14,37 +14,14 @@ const initialMessage: Message = {
   content: "Hello! I'm Sampark AI Assistant. How can I help you today? You can ask about submitting grievances, tracking status, or general queries.",
 };
 
-const botResponses: Record<string, string> = {
-  grievance: "To submit a grievance, scroll to the 'Submit Grievance' section on this page, fill in your details, select a category, and describe your issue. You'll receive a unique tracking ID upon submission.",
-  track: "To track your grievance, use the 'Track Status' tab in the grievance section. Enter your tracking ID (e.g., SMPK12345) and you'll see real-time updates on your complaint.",
-  status: "To check the status of your complaint, go to the Track Status section and enter your tracking ID. You'll see a timeline of all updates.",
-  categories: "We handle various categories: Potholes, Waste Management, Water Supply, Electricity, Drainage, and Other issues. Select the most appropriate category when filing your complaint.",
-  time: "On average, grievances are acknowledged within 24 hours and resolved within 48 hours. Complex issues may take longer, but you'll receive regular updates.",
-  contact: "You can reach us at info@sampark.org or call +91-123-4567890. Our support team is available Monday to Saturday, 9 AM to 6 PM.",
-  hello: "Hello! How can I assist you today? Feel free to ask about submitting complaints, tracking status, or any other queries.",
-  hi: "Hi there! I'm here to help. What would you like to know about Sampark?",
-  thanks: "You're welcome! If you have any more questions, feel free to ask. Have a great day!",
-  thank: "You're welcome! Is there anything else I can help you with?",
-};
-
-function getBotResponse(message: string): string {
-  const lowerMessage = message.toLowerCase();
-  
-  for (const [keyword, response] of Object.entries(botResponses)) {
-    if (lowerMessage.includes(keyword)) {
-      return response;
-    }
-  }
-  
-  return "I understand you have a query. Could you please provide more details? You can ask about:\n• Submitting a grievance\n• Tracking complaint status\n• Categories of issues\n• Response times\n• Contact information";
-}
-
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([initialMessage]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -59,18 +36,42 @@ export default function Chatbot() {
 
     const userMessage: Message = { role: 'user', content: input };
     setMessages((prev) => [...prev, userMessage]);
+    const currentInput = input;
     setInput('');
     setIsTyping(true);
 
-    // Simulate bot thinking
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      // Call backend Gemini API
+      const response = await fetch(`${API_URL}/api/chatbot/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: currentInput,
+          conversationHistory: messages.slice(-5), // Send last 5 messages for context
+        }),
+      });
 
-    const botResponse: Message = {
-      role: 'bot',
-      content: getBotResponse(input),
-    };
-    setMessages((prev) => [...prev, botResponse]);
-    setIsTyping(false);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get response');
+      }
+
+      const botResponse: Message = {
+        role: 'bot',
+        content: data.response,
+      };
+      setMessages((prev) => [...prev, botResponse]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      const errorMessage: Message = {
+        role: 'bot',
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
