@@ -15,7 +15,8 @@ RUN npm install
 # Copy frontend source code
 COPY . .
 
-# Build frontend (creates dist/ folder)
+# Build frontend with empty API_URL to use relative paths
+ENV VITE_API_URL=""
 RUN npm run build
 
 # Stage 2: Production

@@ -2,6 +2,7 @@ import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Sparkles, ArrowLeft } from 'lucide-react';
+import { API_URL } from '@/lib/api';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -14,8 +15,6 @@ const Login: React.FC = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
     try {
       // Call backend API for authentication
