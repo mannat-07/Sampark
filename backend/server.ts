@@ -57,13 +57,16 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 
 // Serve static files from the React app build
-// When compiled, server.js is in backend/dist/, so we need to go up two levels to reach project root
-const distPath = path.join(__dirname, '..', '..', 'dist');
+// When running with tsx, __dirname is backend/, so we need to go up one level to reach project root
+const distPath = path.join(__dirname, '..', 'dist');
+console.log('Serving static files from:', distPath);
 app.use(express.static(distPath));
 
 // Handle React routing - serve index.html for any non-API routes
 app.get(/^(?!\/api).*$/, (req, res) => {
-  res.sendFile(path.join(distPath, 'index.html'));
+  const indexPath = path.join(distPath, 'index.html');
+  console.log('Serving index.html from:', indexPath);
+  res.sendFile(indexPath);
 });
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
