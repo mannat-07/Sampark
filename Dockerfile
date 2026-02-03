@@ -23,6 +23,9 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
+
 # Copy backend package files and install production dependencies
 COPY backend/package*.json ./backend/
 WORKDIR /app/backend
@@ -30,6 +33,9 @@ RUN npm install --production
 
 # Copy backend source code
 COPY backend/ .
+
+# Generate Prisma Client
+RUN npx prisma generate
 
 # Copy built frontend from frontend-builder stage
 COPY --from=frontend-builder /app/dist ../dist
@@ -39,6 +45,7 @@ EXPOSE 3000
 
 # Set environment to production
 ENV NODE_ENV=production
+ENV PORT=3000
 
 # Run the application
 CMD ["npm", "start"]
