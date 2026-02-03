@@ -1,0 +1,69 @@
+name: Build, Push & Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-push-deploy:
+    name: Build, Push & Deploy
+    runs-on: ubuntu-latest
+
+    env:
+      GCP_ARTIFACT_REPO: sampark-repo
+      REGION: asia-south2
+      SERVICE_NAME: sampark-app
+
+    steps:
+      # Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      # Setup gcloud
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      # Configure Docker for Artifact Registry
+      - name: Configure Docker for Artifact Registry
+        run: |
+          echo "🔑 Configuring Docker for Artifact Registry..."
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      # Build Docker image
+      - name: Build Docker image
+        run: |
+          echo "🐳 Building Docker image..."
+          SHORT_SHA=$(git rev-parse --short HEAD)
+
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.GCP_ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:${SHORT_SHA}"
+
+          docker build \
+            -t "$IMAGE" .
+
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+          echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
+
+      # Push Docker image
+      - name: Push Docker image
+        run: |
+          echo "🚀 Pushing Docker image..."
+          docker push "$IMAGE"
+          echo "✅ Image pushed: $IMAGE"
+
+      # Deploy to Cloud Run
+      - name: Deploy to Cloud Run
+        run: |
+          echo "☁️ Deploying to Cloud Run..."
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image "$IMAGE" \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated
