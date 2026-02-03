@@ -2,6 +2,7 @@ import { useState, ChangeEvent, FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from 'framer-motion';
 import { User, Mail, Lock, Sparkles, ArrowLeft } from 'lucide-react';
+import { API_URL } from '@/lib/api';
 
 interface SignupForm {
   name: string;
@@ -27,8 +28,6 @@ const Signup: React.FC = () => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
     try {
       const res = await fetch(`${API_URL}/api/auth/signup`, {
