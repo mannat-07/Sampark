@@ -8,7 +8,10 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx watch server.ts"
+    "dev": "tsx watch server.ts",
+    "build": "cd .. && npm run build",
+    "start": "tsx server.ts",
+    "start:dev": "npm run build && npm start"
   },
   "keywords": [],
   "author": "",
@@ -28,7 +31,8 @@
     "form-data": "^4.0.5",
     "ioredis": "^5.9.2",
     "jsonwebtoken": "^9.0.3",
-    "tsconfig-paths": "^4.2.0"
+    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -40,7 +44,6 @@
     "@types/node": "^25.0.9",
     "prisma": "^6.19.2",
     "ts-node-dev": "^2.0.0",
-    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }

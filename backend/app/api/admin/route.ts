@@ -56,10 +56,10 @@ router.get("/dashboard/stats", verifyToken, verifyAdmin, async (req, res) => {
     `;
 
     // Calculate individual status counts
-    const submitted = statusBreakdown.find((s) => s.status === 'SUBMITTED')?.count || 0;
-    const underReview = statusBreakdown.find((s) => s.status === 'UNDER_REVIEW')?.count || 0;
-    const inProgress = statusBreakdown.find((s) => s.status === 'IN_PROGRESS')?.count || 0;
-    const resolved = statusBreakdown.find((s) => s.status === 'RESOLVED')?.count || 0;
+    const submitted = statusBreakdown.find((s: { status: string; count: number }) => s.status === 'SUBMITTED')?.count || 0;
+    const underReview = statusBreakdown.find((s: { status: string; count: number }) => s.status === 'UNDER_REVIEW')?.count || 0;
+    const inProgress = statusBreakdown.find((s: { status: string; count: number }) => s.status === 'IN_PROGRESS')?.count || 0;
+    const resolved = statusBreakdown.find((s: { status: string; count: number }) => s.status === 'RESOLVED')?.count || 0;
     const rejected = statusBreakdown.find((s) => s.status === 'REJECTED')?.count || 0;
 
     // Calculate resolution rate
@@ -150,12 +150,12 @@ router.get("/dashboard/stats", verifyToken, verifyAdmin, async (req, res) => {
         totalUsers,
         resolutionRate,
         averageResolutionDays: parseFloat(averageResolutionDays.toFixed(1)),
-        categoryBreakdown: categoryBreakdown.reduce((acc, item) => {
+        categoryBreakdown: categoryBreakdown.reduce((acc: Record<string, number>, item: { category: string; _count: { id: number } }) => {
           acc[item.category] = item._count.id;
           return acc;
         }, {} as Record<string, number>),
         monthlyTrend,
-        recentGrievances: recentGrievances.map(g => ({
+        recentGrievances: recentGrievances.map((g: any) => ({
           id: g.id,
           trackingId: g.trackingId,
           title: g.title,
@@ -239,7 +239,7 @@ router.get("/grievances", verifyToken, verifyAdmin, async (req, res) => {
     // Filter by status (from status history)
     let filteredGrievances = grievances;
     if (status && typeof status === 'string') {
-      filteredGrievances = grievances.filter(g => {
+      filteredGrievances = grievances.filter((g: any) => {
         const latestStatus = g.statuses[0]?.status;
         return latestStatus === status.toUpperCase();
       });
@@ -250,7 +250,7 @@ router.get("/grievances", verifyToken, verifyAdmin, async (req, res) => {
 
     res.json({
       success: true,
-      grievances: filteredGrievances.map(g => ({
+      grievances: filteredGrievances.map((g: any) => ({
         ...g,
         currentStatus: g.statuses[0]?.status || 'SUBMITTED',
         statusHistory: g.statuses
@@ -404,7 +404,7 @@ router.get("/users", verifyToken, verifyAdmin, async (req, res) => {
 
     res.json({
       success: true,
-      users: users.map(u => ({
+      users: users.map((u: any) => ({
         ...u,
         grievanceCount: u._count.grievances
       })),
