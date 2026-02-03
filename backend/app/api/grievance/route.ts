@@ -180,7 +180,7 @@ router.get("/my-grievances", verifyToken, async (req, res) => {
 // Get single grievance details
 router.get("/:id", verifyToken, async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     
     if (!req.user) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -217,7 +217,7 @@ router.get("/:id", verifyToken, async (req, res) => {
 // Update grievance status (for admin - future use)
 router.post("/:id/status", verifyToken, async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { status, comment } = req.body;
 
     if (!req.user) {

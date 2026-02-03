@@ -8,7 +8,11 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx watch server.ts"
+    "dev": "tsx watch server.ts",
+    "build": "cd .. && npm run build && cd backend && npm run build:server",
+    "build:server": "tsc",
+    "start": "node dist/server.js",
+    "start:dev": "npm run build && npm start"
   },
   "keywords": [],
   "author": "",
