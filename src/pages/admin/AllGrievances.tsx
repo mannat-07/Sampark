@@ -25,7 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import StatusUpdateModal from '@/components/admin/StatusUpdateModal';
 import { useToast } from '@/hooks/use-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000' : '');
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 interface StatusHistory {
   id: string;
