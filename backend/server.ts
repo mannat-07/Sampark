@@ -49,6 +49,11 @@ app.use(fileUpload({
   abortOnLimit: true,
 }));
 
+// Health check endpoint for Cloud Run
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/grievance", grievanceRoutes);
@@ -88,4 +93,10 @@ app.get('*', (req, res) => {
   res.sendFile(indexPath);
 });
 
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+// Cloud Run requires binding to 0.0.0.0 (all interfaces), not localhost
+const HOST = '0.0.0.0';
+
+app.listen(PORT, HOST, () => {
+  console.log(`Server running on http://${HOST}:${PORT}`);
+  console.log('Environment:', process.env.NODE_ENV);
+});
