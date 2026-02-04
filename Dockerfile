@@ -30,7 +30,9 @@ RUN apk add --no-cache openssl
 # Copy backend package files and install production dependencies
 COPY backend/package*.json ./backend/
 WORKDIR /app/backend
-RUN npm install --production
+
+# Install all dependencies (including tsx which is needed to run TypeScript)
+RUN npm install
 
 # Copy backend source code
 COPY backend/ .

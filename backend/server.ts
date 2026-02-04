@@ -11,7 +11,19 @@ import uploadRoutes from './app/api/upload/route.js';
 import adminRoutes from './app/api/admin/route.js';
 import chatbotRoutes from './app/api/chatbot/route.js';
 
+// Load environment variables
 dotenv.config();
+
+// Global error handlers
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -96,7 +108,16 @@ app.get('*', (req, res) => {
 // Cloud Run requires binding to 0.0.0.0 (all interfaces), not localhost
 const HOST = '0.0.0.0';
 
+console.log('========================================');
+console.log('Starting server...');
+console.log('PORT:', PORT);
+console.log('HOST:', HOST);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
+console.log('========================================');
+
 app.listen(PORT, HOST, () => {
-  console.log(`Server running on http://${HOST}:${PORT}`);
+  console.log(`✅ Server successfully started on http://${HOST}:${PORT}`);
   console.log('Environment:', process.env.NODE_ENV);
+  console.log('Ready to accept connections');
 });
