@@ -104,16 +104,21 @@ app.use(express.static(distPath, {
 console.log('✅ Static file serving configured');
 
 // Handle React routing - serve index.html for client-side routes
-// This must come AFTER express.static
-app.get('*', (req, res) => {
+// Use middleware instead of app.get('*') to avoid Express 5 issues
+app.use((req, res, next) => {
+  // Skip if response already sent
+  if (res.headersSent) {
+    return next();
+  }
+  
   // Don't serve index.html for API routes
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
   
-  // If it looks like a static file request, return 404
+  // If it looks like a static file request, skip
   if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
-    return res.status(404).send('File not found');
+    return next();
   }
   
   // Serve index.html for client-side routing
