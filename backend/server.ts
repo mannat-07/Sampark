@@ -14,9 +14,12 @@ import chatbotRoutes from './app/api/chatbot/route.js';
 // Load environment variables
 dotenv.config();
 
+console.log('🚀 Initializing server...');
+
 // Global error handlers
 process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
+  console.error('Stack:', error.stack);
   process.exit(1);
 });
 
@@ -31,6 +34,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:8080";
+
+console.log('✅ Express app created');
 
 // Allow multiple origins for development
 const allowedOrigins = [
@@ -66,12 +71,16 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+console.log('✅ Health check endpoint registered');
+
 // API routes
+console.log('📡 Registering API routes...');
 app.use("/api/auth", authRoutes);
 app.use("/api/grievance", grievanceRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/chatbot", chatbotRoutes);
+console.log('✅ API routes registered');
 
 // Serve static files from the React app build
 // When running with tsx, __dirname is backend/, so we need to go up one level to reach project root
@@ -92,24 +101,32 @@ app.use(express.static(distPath, {
   }
 }));
 
-// Handle React routing - serve index.html for any route that's not a file
+console.log('✅ Static file serving configured');
+
+// Handle React routing - serve index.html for client-side routes
 // This must come AFTER express.static
-app.get('*', (req, res, next) => {
-  // Skip if it's an API route
-  if (req.path.startsWith('/api')) {
-    return next();
+app.get('*', (req, res) => {
+  // Don't serve index.html for API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
   }
   
-  // If it looks like a file request (has extension), let it 404 naturally
-  if (req.path.includes('.')) {
-    return next();
+  // If it looks like a static file request, return 404
+  if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
+    return res.status(404).send('File not found');
   }
   
   // Serve index.html for client-side routing
   const indexPath = path.join(distPath, 'index.html');
-  console.log('Serving index.html for route:', req.path);
-  res.sendFile(indexPath);
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error('Error serving index.html:', err);
+      res.status(500).send('Internal server error');
+    }
+  });
 });
+
+console.log('✅ SPA routing configured');
 
 // Cloud Run requires binding to 0.0.0.0 (all interfaces), not localhost
 const HOST = '0.0.0.0';
