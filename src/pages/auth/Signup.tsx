@@ -2,7 +2,6 @@ import { useState, ChangeEvent, FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from 'framer-motion';
 import { User, Mail, Lock, Sparkles, ArrowLeft } from 'lucide-react';
-import { API_URL } from '@/lib/api';
 
 interface SignupForm {
   name: string;
@@ -30,7 +29,7 @@ const Signup: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/signup`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
