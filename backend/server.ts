@@ -92,16 +92,22 @@ app.use(express.static(distPath, {
   }
 }));
 
-// Handle React routing - serve index.html for any non-API, non-asset routes
+// Handle React routing - serve index.html for any route that's not a file
 // This must come AFTER express.static
-app.get('*', (req, res) => {
-  // Don't serve index.html for API routes or asset requests
-  if (req.path.startsWith('/api') || req.path.startsWith('/assets')) {
-    return res.status(404).send('Not found');
+app.get('*', (req, res, next) => {
+  // Skip if it's an API route
+  if (req.path.startsWith('/api')) {
+    return next();
   }
   
+  // If it looks like a file request (has extension), let it 404 naturally
+  if (req.path.includes('.')) {
+    return next();
+  }
+  
+  // Serve index.html for client-side routing
   const indexPath = path.join(distPath, 'index.html');
-  console.log('Serving index.html from:', indexPath);
+  console.log('Serving index.html for route:', req.path);
   res.sendFile(indexPath);
 });
 
