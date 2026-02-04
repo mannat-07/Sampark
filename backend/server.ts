@@ -60,10 +60,29 @@ app.use("/api/chatbot", chatbotRoutes);
 // When running with tsx, __dirname is backend/, so we need to go up one level to reach project root
 const distPath = path.join(__dirname, '..', 'dist');
 console.log('Serving static files from:', distPath);
-app.use(express.static(distPath));
 
-// Handle React routing - serve index.html for any non-API routes
-app.get(/^(?!\/api).*$/, (req, res) => {
+// Serve static files with proper configuration
+app.use(express.static(distPath, {
+  maxAge: '1y',
+  etag: true,
+  setHeaders: (res, filePath) => {
+    // Set proper MIME types for assets
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (filePath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    }
+  }
+}));
+
+// Handle React routing - serve index.html for any non-API, non-asset routes
+// This must come AFTER express.static
+app.get('*', (req, res) => {
+  // Don't serve index.html for API routes or asset requests
+  if (req.path.startsWith('/api') || req.path.startsWith('/assets')) {
+    return res.status(404).send('Not found');
+  }
+  
   const indexPath = path.join(distPath, 'index.html');
   console.log('Serving index.html from:', indexPath);
   res.sendFile(indexPath);
