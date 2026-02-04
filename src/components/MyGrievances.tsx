@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { FileText, Clock, CheckCircle2, Loader2, XCircle, Eye, AlertCircle } from 'lucide-react';
 import { Button } from './ui/button';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000' : '');
 
 interface StatusHistory {
   id: string;

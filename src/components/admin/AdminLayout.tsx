@@ -24,7 +24,7 @@ const AdminLayout: React.FC = () => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const handleLogout = async () => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000' : '');
     try {
       await fetch(`${API_URL}/api/auth/logout`, {
         method: "POST",

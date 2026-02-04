@@ -2,7 +2,6 @@ import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Sparkles, ArrowLeft } from 'lucide-react';
-import { API_URL } from '@/lib/api';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -18,7 +17,7 @@ const Login: React.FC = () => {
 
     try {
       // Call backend API for authentication
-      const res = await fetch(`${API_URL}/api/auth/login`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include', // Store token in cookies

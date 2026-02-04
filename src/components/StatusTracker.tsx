@@ -4,7 +4,7 @@ import { Search, Clock, CheckCircle2, AlertCircle, Loader2, XCircle } from 'luci
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000' : '');
 
 interface StatusHistory {
   id: string;

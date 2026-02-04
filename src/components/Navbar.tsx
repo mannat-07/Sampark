@@ -42,7 +42,7 @@ const Navbar: React.FC = () => {
   // 🔐 CHECK AUTH USING COOKIE
   useEffect(() => {
     const checkAuth = async () => {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000' : '');
       try {
         const res = await fetch(`${API_URL}/api/auth/me`, {
           credentials: "include",
@@ -76,7 +76,7 @@ const Navbar: React.FC = () => {
 
   // 🚪 LOGOUT
   const handleLogout = async () => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000' : '');
     try {
       await fetch(`${API_URL}/api/auth/logout`, {
         method: "POST",
