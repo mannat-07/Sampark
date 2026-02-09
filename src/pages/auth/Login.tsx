@@ -130,6 +130,7 @@ const Login: React.FC = () => {
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               required
               className="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-300 dark:border-[#007ea7]/30 bg-white dark:bg-[#003459]/30 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007ea7] focus:border-transparent transition-all"
             />
@@ -147,6 +148,7 @@ const Login: React.FC = () => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
               required
               className="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-300 dark:border-[#007ea7]/30 bg-white dark:bg-[#003459]/30 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007ea7] focus:border-transparent transition-all"
             />

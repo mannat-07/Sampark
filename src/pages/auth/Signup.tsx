@@ -36,8 +36,8 @@ const Signup: React.FC = () => {
         body: JSON.stringify(form),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Signup failed");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Signup failed");
 
       // Store user data for display purposes (auth is cookie-based)
       if (data.user) {
@@ -45,8 +45,8 @@ const Signup: React.FC = () => {
       }
 
       navigate("/dashboard");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
       setLoading(false);
     }
@@ -136,6 +136,7 @@ const Signup: React.FC = () => {
               placeholder="Full Name"
               value={form.name}
               onChange={handleChange}
+              autoComplete="name"
               required
               className="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-300 dark:border-[#007ea7]/30 bg-white dark:bg-[#003459]/30 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007ea7] focus:border-transparent transition-all"
             />
@@ -154,6 +155,7 @@ const Signup: React.FC = () => {
               placeholder="Email address"
               value={form.email}
               onChange={handleChange}
+              autoComplete="email"
               required
               className="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-300 dark:border-[#007ea7]/30 bg-white dark:bg-[#003459]/30 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007ea7] focus:border-transparent transition-all"
             />
@@ -169,9 +171,11 @@ const Signup: React.FC = () => {
             <input
               type="password"
               name="password"
-              placeholder="Password"
+              placeholder="Password (min 8 characters)"
               value={form.password}
               onChange={handleChange}
+              autoComplete="new-password"
+              minLength={8}
               required
               className="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-300 dark:border-[#007ea7]/30 bg-white dark:bg-[#003459]/30 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007ea7] focus:border-transparent transition-all"
             />
