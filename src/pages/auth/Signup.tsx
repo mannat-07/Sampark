@@ -101,11 +101,11 @@ const Signup: React.FC = () => {
           transition={{ delay: 0.2 }}
           className="text-center mb-6"
         >
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#007ea7] to-[#00a8e8] mb-4 shadow-lg">
-            <Sparkles className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4">
+            <img src="/logo.png" alt="Sampark Logo" className="w-16 h-16 object-contain" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Create your SampArk account
+            Create your Sampark account
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
             Raise issues. Track resolutions. Stay heard.

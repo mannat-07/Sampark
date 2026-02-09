@@ -9,9 +9,7 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#007ea7] to-[#00a8e8] flex items-center justify-center shadow-lg">
-                <Shield className="w-4 h-4 text-white" />
-              </div>
+              <img src="/logo.png" alt="Sampark Logo" className="w-8 h-8 rounded-lg object-contain" />
               <span className="font-display font-bold text-lg text-gray-900 dark:text-white">
                 Sampark
               </span>

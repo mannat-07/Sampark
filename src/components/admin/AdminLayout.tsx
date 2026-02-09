@@ -60,11 +60,9 @@ const AdminLayout: React.FC = () => {
               className="flex items-center gap-4"
               whileHover={{ scale: 1.02 }}
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#007ea7] to-[#00a8e8] flex items-center justify-center shadow-lg">
-                <LayoutDashboard className="w-6 h-6 text-white" />
-              </div>
+              <img src="/logo.png" alt="Sampark Logo" className="w-10 h-10 rounded-xl object-contain" />
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">SampArk</h1>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Sampark</h1>
                 <p className="text-xs text-[#007ea7] dark:text-[#00a8e8]">Admin Portal</p>
               </div>
             </motion.div>
