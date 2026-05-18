@@ -189,9 +189,15 @@ router.get("/grievances", verifyToken, verifyAdmin, async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
-    const pageNum = parseInt(page as string);
-    const limitNum = parseInt(limit as string);
+    // Validate and sanitize pagination parameters
+    const pageNum = Math.max(1, parseInt(page as string) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit as string) || 10)); // Cap at 100
     const skip = (pageNum - 1) * limitNum;
+
+    // Whitelist allowed sort fields to prevent SQL injection
+    const allowedSortFields = ['createdAt', 'updatedAt', 'title', 'category', 'priority'];
+    const safeSortBy = allowedSortFields.includes(sortBy as string) ? sortBy : 'createdAt';
+    const safeSortOrder = sortOrder === 'asc' ? 'asc' : 'desc';
 
     // Build where clause
     const where: Record<string, unknown> = {};
@@ -206,11 +212,19 @@ router.get("/grievances", verifyToken, verifyAdmin, async (req, res) => {
     }
 
     if (category && typeof category === 'string') {
-      where.category = category.toUpperCase();
+      const validCategories = ['POTHOLES', 'WASTE', 'WATER', 'ELECTRICITY', 'DRAINAGE', 'OTHER'];
+      const upperCategory = category.toUpperCase();
+      if (validCategories.includes(upperCategory)) {
+        where.category = upperCategory;
+      }
     }
 
     if (priority && typeof priority === 'string') {
-      where.priority = priority.toUpperCase();
+      const validPriorities = ['LOW', 'MEDIUM', 'HIGH'];
+      const upperPriority = priority.toUpperCase();
+      if (validPriorities.includes(upperPriority)) {
+        where.priority = upperPriority;
+      }
     }
 
     // Get total count
@@ -221,7 +235,7 @@ router.get("/grievances", verifyToken, verifyAdmin, async (req, res) => {
       where,
       skip,
       take: limitNum,
-      orderBy: { [sortBy as string]: sortOrder },
+      orderBy: { [safeSortBy]: safeSortOrder },
       include: {
         user: {
           select: {
@@ -231,7 +245,8 @@ router.get("/grievances", verifyToken, verifyAdmin, async (req, res) => {
           }
         },
         statuses: {
-          orderBy: { createdAt: 'desc' }
+          orderBy: { createdAt: 'desc' },
+          take: 10 // Limit status history to prevent large payloads
         }
       }
     });
@@ -363,9 +378,15 @@ router.get("/users", verifyToken, verifyAdmin, async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
-    const pageNum = parseInt(page as string);
-    const limitNum = parseInt(limit as string);
+    // Validate and sanitize pagination parameters
+    const pageNum = Math.max(1, parseInt(page as string) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit as string) || 10)); // Cap at 100
     const skip = (pageNum - 1) * limitNum;
+
+    // Whitelist allowed sort fields
+    const allowedSortFields = ['createdAt', 'name', 'email'];
+    const safeSortBy = allowedSortFields.includes(sortBy as string) ? sortBy : 'createdAt';
+    const safeSortOrder = sortOrder === 'asc' ? 'asc' : 'desc';
 
     // Build where clause
     const where: Record<string, unknown> = {
@@ -387,7 +408,7 @@ router.get("/users", verifyToken, verifyAdmin, async (req, res) => {
       where,
       skip,
       take: limitNum,
-      orderBy: { [sortBy as string]: sortOrder },
+      orderBy: { [safeSortBy]: safeSortOrder },
       select: {
         id: true,
         name: true,

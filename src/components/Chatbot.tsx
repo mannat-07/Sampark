@@ -40,6 +40,10 @@ export default function Chatbot() {
     setInput('');
     setIsTyping(true);
 
+    // Set a timeout for the request
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
     try {
       // Call backend Gemini API
       const response = await fetch(`${API_URL}/api/chatbot/chat`, {
@@ -49,7 +53,10 @@ export default function Chatbot() {
           message: currentInput,
           conversationHistory: messages.slice(-5), // Send last 5 messages for context
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       const data = await response.json();
 
@@ -63,10 +70,17 @@ export default function Chatbot() {
       };
       setMessages((prev) => [...prev, botResponse]);
     } catch (error) {
+      clearTimeout(timeoutId);
       console.error('Chat error:', error);
+      
+      let errorMsg = "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.";
+      if (error instanceof Error && error.name === 'AbortError') {
+        errorMsg = "Request timed out. Please try again with a shorter message.";
+      }
+      
       const errorMessage: Message = {
         role: 'bot',
-        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
+        content: errorMsg,
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {

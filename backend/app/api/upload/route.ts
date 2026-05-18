@@ -53,6 +53,16 @@ router.post("/image", async (req, res) => {
       });
     }
 
+    // Additional validation: Check file extension
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    if (!allowedExtensions.includes(fileExtension)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Invalid file extension" 
+      });
+    }
+
     // Validate file size (max 10MB)
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
@@ -61,6 +71,9 @@ router.post("/image", async (req, res) => {
         error: `Image size (${(file.size / 1024 / 1024).toFixed(2)} MB) exceeds 10MB limit` 
       });
     }
+
+    // Sanitize filename to prevent path traversal
+    const sanitizedFilename = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
 
     // Upload to Cloudinary
     const uploadResult = await new Promise<{secure_url: string; public_id: string}>((resolve, reject) => {
@@ -88,7 +101,7 @@ router.post("/image", async (req, res) => {
       success: true,
       url: uploadResult.secure_url,
       imageId: uploadResult.public_id,
-      filename: file.name,
+      filename: sanitizedFilename,
     });
 
   } catch (error) {
@@ -135,19 +148,30 @@ router.post("/images", async (req, res) => {
     }
 
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
     
     const uploadPromises = files.map(async (file: UploadedFile) => {
       try {
-        // Validate each file
+        // Validate each file type
         if (!allowedTypes.includes(file.mimetype)) {
           console.warn(`⚠️ ${file.name}: Invalid type (${file.mimetype})`);
           return { success: false, error: `${file.name}: Invalid file type` };
+        }
+
+        // Validate file extension
+        const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+        if (!allowedExtensions.includes(fileExtension)) {
+          console.warn(`⚠️ ${file.name}: Invalid extension`);
+          return { success: false, error: `${file.name}: Invalid file extension` };
         }
 
         if (file.size > 10 * 1024 * 1024) {
           console.warn(`⚠️ ${file.name}: File too large (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
           return { success: false, error: `${file.name}: Exceeds 10MB limit` };
         }
+
+        // Sanitize filename
+        const sanitizedFilename = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
 
         console.log(`📤 Uploading ${file.name} to Cloudinary...`);
         
@@ -175,7 +199,7 @@ router.post("/images", async (req, res) => {
           success: true,
           url: uploadResult.secure_url,
           imageId: uploadResult.public_id,
-          filename: file.name,
+          filename: sanitizedFilename,
         };
       } catch (error) {
         console.error(`❌ Error uploading ${file.name}:`, error);

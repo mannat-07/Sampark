@@ -15,6 +15,8 @@ model User {
   role       UserRole    @default(USER)
   createdAt  DateTime    @default(now())
   grievances Grievance[]
+
+  @@index([email])
 }
 
 enum UserRole {
@@ -55,6 +57,10 @@ model Grievance {
   statuses    GrievanceStatusHistory[]
   createdAt   DateTime                 @default(now())
   updatedAt   DateTime                 @updatedAt
+
+  @@index([userId])
+  @@index([trackingId])
+  @@index([createdAt])
 }
 
 model GrievanceStatusHistory {

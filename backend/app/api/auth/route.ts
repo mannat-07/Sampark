@@ -23,11 +23,37 @@ router.post("/signup", async (req, res) => {
     const { name, email, password } = req.body;
     if (!name || !email || !password) return res.status(400).json({ message: "All fields required" });
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    // Validate input lengths
+    if (name.length < 2 || name.length > 100) {
+      return res.status(400).json({ message: "Name must be between 2 and 100 characters" });
+    }
+    if (email.length > 255) {
+      return res.status(400).json({ message: "Email is too long" });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+    if (password.length > 128) {
+      return res.status(400).json({ message: "Password is too long" });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
     if (existingUser) return res.status(400).json({ message: "Email already exists" });
 
     const hashed = await hashPassword(password);
-    const newUser = await prisma.user.create({ data: { name, email, password: hashed } });
+    const newUser = await prisma.user.create({ 
+      data: { 
+        name: name.trim(), 
+        email: email.toLowerCase().trim(), 
+        password: hashed 
+      } 
+    });
 
     // Auto-login after signup by setting cookie
     const token = generateToken(newUser.id);

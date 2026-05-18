@@ -56,14 +56,19 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  maxAge: 86400 // Cache preflight for 24 hours
 }));
 
-app.use(express.json());
+// Request size limits to prevent DoS
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
 app.use(fileUpload({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
   abortOnLimit: true,
+  useTempFiles: false,
+  tempFileDir: '/tmp/'
 }));
 
 // Health check endpoint for Cloud Run
@@ -144,8 +149,14 @@ console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
 console.log('========================================');
 
-app.listen(PORT, HOST, () => {
-  console.log(`✅ Server successfully started on http://${HOST}:${PORT}`);
-  console.log('Environment:', process.env.NODE_ENV);
-  console.log('Ready to accept connections');
-});
+const isVercel = Boolean(process.env.VERCEL) || Boolean(process.env.NOW_REGION);
+
+if (!isVercel) {
+  app.listen(PORT, HOST, () => {
+    console.log(`✅ Server successfully started on http://${HOST}:${PORT}`);
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('Ready to accept connections');
+  });
+}
+
+export default app;

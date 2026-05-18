@@ -117,7 +117,30 @@ export default function GrievanceForm({ onGrievanceSubmitted }: GrievanceFormPro
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Client-side validation
+    if (formData.title.length > 200) {
+      toast.error('Title must be less than 200 characters');
+      return;
+    }
+    if (formData.description.length > 2000) {
+      toast.error('Description must be less than 2000 characters');
+      return;
+    }
+    if (formData.location.length > 500) {
+      toast.error('Location must be less than 500 characters');
+      return;
+    }
+    if (uploadedImages.length > 5) {
+      toast.error('Maximum 5 images allowed');
+      return;
+    }
+    
     setIsSubmitting(true);
+
+    // Set a timeout for the request
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
     try {
       const response = await fetch(`${API_URL}/api/grievance/submit`, {
@@ -127,16 +150,19 @@ export default function GrievanceForm({ onGrievanceSubmitted }: GrievanceFormPro
         },
         credentials: 'include',
         body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
+          title: formData.title.trim(),
+          description: formData.description.trim(),
           category: formData.category,
-          location: formData.location,
+          location: formData.location.trim(),
           latitude: formData.latitude || null,
           longitude: formData.longitude || null,
           images: uploadedImages,
           priority: formData.priority,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       const data = await response.json();
 
@@ -167,7 +193,14 @@ export default function GrievanceForm({ onGrievanceSubmitted }: GrievanceFormPro
         }
       }
     } catch (error) {
-      toast.error('Failed to submit grievance. Please try again.');
+      clearTimeout(timeoutId);
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.');
+      } else {
+        toast.error('Failed to submit grievance. Please try again.');
+      }
+      console.error('Submit error:', error);
     } finally {
       setIsSubmitting(false);
     }

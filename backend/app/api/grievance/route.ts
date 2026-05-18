@@ -13,12 +13,13 @@ import {
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Generate unique tracking ID
+// Generate unique tracking ID with better randomness
 function generateTrackingId() {
   const prefix = "SMPK";
   const randomNum = Math.floor(10000 + Math.random() * 90000);
-  const timestamp = Date.now().toString().slice(-4);
-  return `${prefix}${randomNum}${timestamp}`;
+  const timestamp = Date.now().toString().slice(-6);
+  const random = Math.random().toString(36).substring(2, 5).toUpperCase();
+  return `${prefix}${randomNum}${timestamp}${random}`;
 }
 
 // Submit a new grievance
@@ -37,39 +38,93 @@ router.post("/submit", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // Generate unique tracking ID
-    let trackingId = generateTrackingId();
-    let isUnique = false;
-    
-    // Ensure tracking ID is unique
-    while (!isUnique) {
-      const existing = await prisma.grievance.findUnique({
-        where: { trackingId }
-      });
-      if (!existing) {
-        isUnique = true;
-      } else {
-        trackingId = generateTrackingId();
+    // Validate field lengths
+    if (title.length > 200) {
+      return res.status(400).json({ error: "Title must be less than 200 characters" });
+    }
+    if (description.length > 2000) {
+      return res.status(400).json({ error: "Description must be less than 2000 characters" });
+    }
+    if (location.length > 500) {
+      return res.status(400).json({ error: "Location must be less than 500 characters" });
+    }
+
+    // Validate category
+    const validCategories = ['POTHOLES', 'WASTE', 'WATER', 'ELECTRICITY', 'DRAINAGE', 'OTHER'];
+    if (!validCategories.includes(category.toUpperCase())) {
+      return res.status(400).json({ error: "Invalid category" });
+    }
+
+    // Validate priority
+    const validPriorities = ['LOW', 'MEDIUM', 'HIGH'];
+    const normalizedPriority = priority ? priority.toUpperCase() : 'MEDIUM';
+    if (!validPriorities.includes(normalizedPriority)) {
+      return res.status(400).json({ error: "Invalid priority. Must be LOW, MEDIUM, or HIGH" });
+    }
+
+    // Validate coordinates if provided
+    if (latitude !== undefined && latitude !== null) {
+      const lat = parseFloat(latitude);
+      if (isNaN(lat) || lat < -90 || lat > 90) {
+        return res.status(400).json({ error: "Invalid latitude" });
       }
+    }
+    if (longitude !== undefined && longitude !== null) {
+      const lon = parseFloat(longitude);
+      if (isNaN(lon) || lon < -180 || lon > 180) {
+        return res.status(400).json({ error: "Invalid longitude" });
+      }
+    }
+
+    // Validate images array
+    if (images && (!Array.isArray(images) || images.length > 5)) {
+      return res.status(400).json({ error: "Maximum 5 images allowed" });
+    }
+
+    // Generate unique tracking ID with retry limit to prevent infinite loop
+    let trackingId = generateTrackingId();
+    let attempts = 0;
+    const maxAttempts = 5;
+    
+    // Ensure tracking ID is unique with bounded retries
+    while (attempts < maxAttempts) {
+      try {
+        const existing = await prisma.grievance.findUnique({
+          where: { trackingId }
+        });
+        if (!existing) {
+          break;
+        }
+        trackingId = generateTrackingId();
+        attempts++;
+      } catch (error) {
+        console.error("Error checking tracking ID uniqueness:", error);
+        return res.status(500).json({ error: "Failed to generate tracking ID" });
+      }
+    }
+
+    if (attempts >= maxAttempts) {
+      return res.status(500).json({ error: "Failed to generate unique tracking ID. Please try again." });
     }
 
     // Create grievance
     const grievance = await prisma.grievance.create({
       data: {
         trackingId,
-        title,
-        description,
+        title: title.trim(),
+        description: description.trim(),
         category: category.toUpperCase(),
-        location,
+        location: location.trim(),
         latitude: latitude ? parseFloat(latitude) : null,
         longitude: longitude ? parseFloat(longitude) : null,
         images: images || [],
-        priority: priority || "MEDIUM",
+        priority: normalizedPriority,
         userId,
         statuses: {
           create: {
             status: "SUBMITTED",
-            comment: "Grievance submitted successfully"
+            comment: "Grievance submitted successfully",
+            createdBy: userId
           }
         }
       },
