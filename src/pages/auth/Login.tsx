@@ -17,7 +17,7 @@ const Login: React.FC = () => {
 
     try {
       // Call backend API for authentication
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
+      const res = await fetch(`/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include', // Store token in cookies

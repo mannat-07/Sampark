@@ -24,7 +24,7 @@ export default function HeroSection() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/auth/me`, {
+        const res = await fetch(`/api/auth/me`, {
           credentials: 'include',
         });
         setIsLoggedIn(res.ok);

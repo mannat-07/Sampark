@@ -68,7 +68,7 @@ const AdminDashboard = () => {
       setLoading(true);
       
       // Check admin authentication
-      const authResponse = await fetch(`${API_URL}/api/auth/me`, {
+      const authResponse = await fetch(`/api/auth/me`, {
         credentials: 'include',
       });
 

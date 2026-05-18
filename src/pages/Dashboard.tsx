@@ -15,7 +15,7 @@ const Dashboard: React.FC = () => {
     const checkAuth = async () => {
       const API_URL = import.meta.env.VITE_API_URL || '';
       try {
-        const res = await fetch(`${API_URL}/api/auth/me`, {
+        const res = await fetch(`/api/auth/me`, {
           method: "GET",
           credentials: "include", // 🔥 IMPORTANT
         });
