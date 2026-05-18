@@ -72,3 +72,4 @@ prisma/dev.db-journal
 *.pem
 
 
+.vercel
